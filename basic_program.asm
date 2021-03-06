@@ -1,4 +1,4 @@
-;8253:0280-0283  8255:0284-0287
+;8253:0280H-0283H  8255:0290H-0293H   
 ;数据段定义
 DATA    SEGMENT
     MES DB 'PRESS ANY KEY EXIT TO DOS',0AH,0DH,'$';DOS输出提示信息
@@ -28,7 +28,7 @@ START:
     MOV AH, 09H
     INT 21H
 ;初始化8255
-    MOV DX, 0287H           ;控制端
+    MOV DX, 0293H           ;控制端
     MOV AL, 90H             ;方式选择控制字-方式0-A入B出C出 10000000
     OUT DX, AL              ;写入控制字
 ;初始化8253
@@ -107,7 +107,7 @@ LOOP0:
         PUSHF
         MOV AH, LOOP_NUM    ;装载计数器
         MOV BX, OFFSET TAB  ;换码数据地址
-        MOV DX, 0284H       ;A口
+        MOV DX, 0290H       ;A口
         IN  AL, DX
         CMP AH, 01H         ;计数器与1比较
         JZ  DISPLAY_LOW     ;等于1显示低四位，否则(2/3)显示高四位
@@ -119,7 +119,7 @@ DISPLAY_LOW:
         AND AL, 0FH
 OUTPUT:
         XLAT                ;(BX:AL) to AL，AL放入数码管字形
-        MOV DX, 0285H       ;B口
+        MOV DX, 0291H       ;B口
         OUT DX, AL          ;B口输出
         DEC AH              ;
         JNZ FINISH
