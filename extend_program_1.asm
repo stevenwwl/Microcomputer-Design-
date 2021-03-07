@@ -12,7 +12,6 @@ DATA    SEGMENT
     PRESS_NUM DB 00H        ;按键次数
     INPUT_BIT DB 00H        ;一次传输中，当前传输的位数
     INPUT_KEY_PS2 DB 00H    ;传输的编码
-    LOADING DB 00H          ;标志位，0表示没在传输，1表示正在传输
     INPUT_KEY DB 00H        ;按键值(00H-0FH)
     HEX_NUM DB ?            ;子程序NUM_DIVIDE入口参数
     TENS DB ?               ;转换后十位
@@ -98,7 +97,7 @@ LOOP0:
     MOV DISPLAY_NUM, AL
     MOV C_CONTROL, 06H      ;0000 011 0 PC3置0
     CALL LED_DISPLAY
-SKIP_DISPLAY:
+;判断是否退出程序
     MOV AH, 0BH
     INT 21H                 ;键扫描：无键入AL=00H，有键入AL=FFH
     ADD AL, 01H
@@ -119,10 +118,9 @@ SKIP_DISPLAY:
 ;----------------------------------------------------------------------------
 ;中断子程序INT_PR： 每触发一次传输1位
 ;入口参数：         INPUT_BIT       当前传输位数
-;                   INPUT_KEY_PS2   上次传输的编码
-;出口参数：         LOADING         是否传输完
-;                   INPUT_BIT       下次传输位数
-;                   INPUT_KEY_PS2   传输完成的编码
+;                  INPUT_KEY_PS2   上次传输的编码
+;出口参数：         INPUT_BIT       下次传输位数
+;                  INPUT_KEY_PS2   传输完成的编码
 ;所用寄存器：       AH,AL,BX,CL,DX
 ;----------------------------------------------------------------------------
     INT_PR PROC FAR
@@ -147,14 +145,12 @@ SKIP_DISPLAY:
         JMP IGNORE
 CLEAR:
         MOV AH, 00H
-        MOV LOADING ,01H
 IGNORE:
         INC CL
-        
+
         CMP CL, 0BH         ;当CL=11时，本次已传完，清变量准备下一次接收
         JNZ FINISH
         MOV CL, 00H
-        MOV LOADING, 00H
         MOV INPUT_KEY_PS2, AH
         CALL TRANSFORM_PS2  ;调用函数，把PS2编码转为0-F
 FINISH:
