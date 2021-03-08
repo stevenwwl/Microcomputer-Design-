@@ -10,3 +10,8 @@
 1）输入字符（0\~F），转换成十进制后用数码管（1、2）显示（00\~15）；   
 2）用实验台上的数码管（3、4）显示输入的次数，计数范围 0～99。  
 [参考](https://blog.csdn.net/xqhrs232/article/details/78350203?utm_medium=distribute.pc_relevant.none-task-blog-baidujs_baidulandingword-8&spm=1001.2101.3001.4242)
+
+## extend_program_4.asm
+利用 8253、8255 和中断系统实现以下功能：  
+ 1）使液晶屏实现秒表功能，显示数字 00.00～10.00，每隔 0.01 秒数字变化一次；   
+ 2）读入8个开关的状态值，将这两位数字以16进制（范围 00H～FFH）在 16x16LED点阵模块上显示。
