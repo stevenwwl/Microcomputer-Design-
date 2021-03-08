@@ -3,6 +3,7 @@
 ## basic_program.asm
 ![image](https://user-images.githubusercontent.com/48176748/110308009-8b645900-803a-11eb-8c50-067ed8f584ad.png)
 通过A端口读入按键值，用数码管轮流显示按键值的高四位和低四位，具体方式为：高四位显示 1 秒，低四位显示 0.5 秒。 如此反复循环显示，如果有键盘按键输入，则退出程序并返回操作系统。
+![basic_program](https://user-images.githubusercontent.com/48176748/110315766-aa67e880-8044-11eb-8b02-f47b4da2bd51.png)
 ## extend_program_1.asm
 通过实验台上 PS2 接口连接键盘，要求：   
 1）输入字符（0\~F），转换成十进制后用数码管（1、2）显示（00\~15）；   
