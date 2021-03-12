@@ -1,5 +1,6 @@
 ;8253:0280H-0283H  8255:0290H-0293H
 ;16*16点阵外挂在JX1扩展接口，列高8位-02B1H，列低8位-02B0H，行高8位02B3H，行低8位02B2H
+;LCD12864:RS-PC0  RW-PC1  E-PC2
 ;数据段定义
 DATA    SEGMENT
     MES DB 'PRESS ANY KEY EXIT TO DOS',0AH,0DH,'$';DOS输出提示信息
@@ -15,6 +16,7 @@ DATA    SEGMENT
     HUNDREDS DB ?
     TENS DB ?
     ONES DB ?
+    LED_CMD DB ?            ;写入的LED命令代码
 DATA    ENDS
 ;堆栈段定义
 STACKS   SEGMENT
@@ -281,6 +283,68 @@ SKIP:
         POP AX
         RET
     TIME_DIVIDE ENDP
+;----------------------------------------------------------------------------
+;子程序LCD_INIT：           LCD初始化设置
+;入口参数：
+;出口参数：
+;所用寄存器：               
+;----------------------------------------------------------------------------
+    LCD_INIT PROC NEAR
+        PUSH AX             ;现场保护
+        PUSH BX
+        PUSH CX
+        PUSH DX
+        PUSHF
+        MOV LED_CMD, 30H
+        CALL WRITE_CMD      ;功能设定：8位接口，基本指令集
+        MOV LED_CMD, 0CH
+        CALL WRITE_CMD      ;显示开关设置：整体显示开，游标显示关，反白显示关
+        MOV LED_CMD, 01H
+        CALL WRITE_CMD      ;清除显示
+        MOV LED_CMD, 06H
+        CALL WRITE_CMD      ;进入设定点：游标右移,画面不移动
+        POPF                ;恢复现场
+        POP DX
+        POP CX
+        POP BX
+        POP AX
+        RET
+    LCD_INIT ENDP
+;----------------------------------------------------------------------------
+;子程序WRITE_CMD：          写入控制命令(RS=0,RW=0)
+;入口参数：                 LED_CMD         要写入的命令编码
+;出口参数：
+;所用寄存器：               AL,DX
+;----------------------------------------------------------------------------
+    WRITE_CMD PROC NEAR
+        PUSH AX             ;现场保护
+        PUSH BX
+        PUSH CX
+        PUSH DX
+        PUSHF
+        CALL CHECK_BUSY     ;先查忙，不忙才能向下
+        MOV DX, 0293H
+        MOV AL, 82H
+        OUT DX, AL          ;A出B入C出
+        MOV AL, 00H
+        OUT DX,AL           ;RS置0
+        MOV AL, 02H
+        OUT DX, AL          ;RW置0
+        CALL DELAY_SHORT
+        MOV DX, 0290H       ;A口
+        MOV AL, LED_CMD
+        OUT DX, AL          ;输出指令
+        MOV DX, 0293H
+        MOV AL, 05H         ;E置1
+        CALL DELAY_SHORT
+        MOV AL, 04H         ;E置0
+        POPF                ;恢复现场
+        POP DX
+        POP CX
+        POP BX
+        POP AX
+        RET
+    WRITE_CMD ENDP
 
 
 
@@ -293,5 +357,93 @@ SKIP:
 
 
 
+    
+;----------------------------------------------------------------------------
+;子程序CHECK_BUSY：         检查是否忙碌，只有不忙碌时才会退出，
+;                          运行后8255为A入B入C出
+;入口参数：
+;出口参数：
+;所用寄存器：               AL,DX
+;----------------------------------------------------------------------------
+    CHECK_BUSY PROC NEAR
+        PUSH AX             ;现场保护
+        PUSH DX
+        PUSHF
+        MOV DX, 0293H
+        MOV AL, 92H
+        OUT DX, AL          ;A入B入C出
+        MOV AL, 00H
+        OUT DX, AL          ;RS置0
+        MOV AL, 03H
+        OUT DX, AL          ;RW置1
+CHECK_AGAIN:
+        MOV DX, 0293H
+        MOV AL, 05H
+        OUT DX, AL          ;E置1
+        CALL DELAY_SHORT
+        MOV DX, 0290H
+        IN  AL, DX          ;读A口忙碌状态
+        PUSH AX
+        MOV DX, 0293H
+        MOV AL, 04H
+        OUT DX, AL          ;E置0
+        POP AX
+        AND AL, 80H
+        JNZ CHECK_AGAIN     ;忙碌位为1，则再延时一会
+        POPF                ;恢复现场
+        POP DX
+        POP AX
+        RET
+    CHECK_BUSY ENDP
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+;----------------------------------------------------------------------------
+;子程序DELAY_LONG：         长延时
+;入口参数：
+;出口参数：
+;所用寄存器：               BX,CX
+;----------------------------------------------------------------------------
+    DELAY_LONG PROC NEAR
+        PUSH BX
+        PUSH CX
+        MOV BX,20
+D1: 
+        MOV CX,6000
+D2: 
+        LOOP D2
+        DEC BX
+        JNZ D1
+        POP CX
+        POP BX
+        RET
+    DELAY_LONG ENDP
+;----------------------------------------------------------------------------
+;子程序DELAY_SHORT：        短延时
+;入口参数：
+;出口参数：
+;所用寄存器：               CX
+;----------------------------------------------------------------------------
+    DELAY_SHORT PROC NEAR
+        PUSH CX
+        MOV CX,4000
+D3: 
+        LOOP D3
+        POP CX
+        RET
+    DELAY_SHORT ENDP
 CODE    ENDS
 END     START 
