@@ -86,12 +86,22 @@ START:
 
 
 
+
 ;循环检测是否有键按下
 LOOP0:
     MOV AH, 0BH
     INT 21H                 ;键扫描：无键入AL=00H，有键入AL=FFH
     ADD AL, 01H
     JNZ LOOP0               ;有键入则退出循环
+
+
+
+
+
+
+
+
+
 ;退出前，恢复原中断向量
     CLI                     ;关中断
     MOV AX, INT_SEG
