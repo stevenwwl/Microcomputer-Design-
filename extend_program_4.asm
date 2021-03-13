@@ -563,7 +563,7 @@ D3:
         PUSH DX
         PUSH SI
         PUSHF
-        MOV BX OFFSET LED_TABLE
+        MOV BX, OFFSET LED_TABLE
         MOV COLUMN_ADDRESS, 02B0H;左部
         MOV ROW_ADDRESS, 02B3H;上部
         MOV AL, 0
