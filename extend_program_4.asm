@@ -18,6 +18,25 @@ DATA    SEGMENT
     LINE_1 DB ' Digital  Timer ';第一行显示,16个字符
     SWITCH_NUM_HIGH DB ?    ;开关状态高位
     SWITCH_NUM_LOW DB ?     ;开关状态低位
+    COLUMN_ADDRESS DW ?     ;点阵列地址
+    ROW_ADDRESS DW ?        ;点阵行地址
+    ROW_CODE_OFFSET DW ?    ;行输出的偏移地址
+    LED_TABLE   DB 00H,07H,08H,10H,10H,08H,07H,00H,00H,0F0H,08H,04H,04H,08H,0F0H,00H;0-F的16*8字模
+                DB 00H,08H,08H,1FH,00H,00H,00H,00H,00H,04H,04H,0FCH,04H,04H,00H,00H
+                DB 00H,0EH,10H,10H,10H,11H,0EH,00H,00H,0CH,14H,24H,44H,84H,0CH,00H
+                DB 00H,0CH,10H,11H,11H,12H,0CH,00H,00H,18H,04H,04H,04H,88H,70H,00H
+                DB 00H,00H,03H,04H,08H,1FH,00H,00H,00H,0E0H,20H,24H,24H,0FCH,24H,00H
+                DB 00H,00H,03H,04H,08H,1FH,00H,00H,00H,0E0H,20H,24H,24H,0FCH,24H,00H
+                DB 00H,07H,08H,11H,11H,18H,00H,00H,00H,0F0H,88H,04H,04H,88H,70H,00H
+                DB 00H,1CH,10H,10H,13H,1CH,10H,00H,00H,00H,00H,0FCH,00H,00H,00H,00H
+                DB 00H,0EH,11H,10H,10H,11H,0EH,00H,00H,38H,44H,84H,84H,44H,38H,00H
+                DB 00H,07H,08H,10H,10H,08H,07H,00H,00H,00H,8CH,44H,44H,88H,0F0H,00H
+                DB 00H,00H,03H,1CH,07H,00H,00H,00H,04H,3CH,0C4H,40H,40H,0E4H,1CH,04H
+                DB 10H,1FH,11H,11H,11H,0EH,00H,00H,04H,0FCH,04H,04H,04H,88H,70H,00H
+                DB 03H,0CH,10H,10H,10H,10H,1CH,00H,0E0H,18H,04H,04H,04H,08H,10H,00H
+                DB 10H,1FH,10H,10H,10H,08H,07H,00H,04H,0FCH,04H,04H,04H,08H,0F0H,00H
+                DB 10H,1FH,11H,11H,17H,10H,08H,00H,04H,0FCH,04H,04H,0C4H,04H,18H,00H
+                DB 10H,1FH,11H,11H,17H,10H,08H,00H,04H,0FCH,04H,00H,0C0H,00H,00H,00H
 DATA    ENDS
 ;堆栈段定义
 STACKS   SEGMENT
@@ -91,32 +110,11 @@ LOOP0:
     CALL TIME_DIVIDE
     CALL LCD_DISPLAY_TIME
     CALL GET_SWITCH_NUM
-    
-
-
-
-
-
-
-
-
-
-
-
-
+    CALL ARRAY_DISPLAY
     MOV AH, 0BH
     INT 21H                 ;键扫描：无键入AL=00H，有键入AL=FFH
     ADD AL, 01H
     JNZ LOOP0               ;有键入则退出循环
-
-
-
-
-
-
-
-
-
 ;退出前，恢复原中断向量
     CLI                     ;关中断
     MOV AX, INT_SEG
@@ -202,7 +200,7 @@ FINISH:
         MOV AL, IS_TIMING
         CMP AL, 01H         ;若正在计时，不能使用清零功能
         JZ FINISH1
-        MOV WORD PTR TIME_TO_LOAD, 0FFFFH;重置初值
+        MOV TIME_TO_LOAD, 0FFFFH;重置初值
 FINISH1:
         POPF                ;恢复现场
         POP DX
@@ -250,7 +248,7 @@ FINISH2:
         JB SKIP             ;小于10000(为4位数)时跳转
         MOV AX, 9999
 SKIP:
-        MOV WORD PTR TIME, AX;返回出口参数
+        MOV TIME, AX        ;返回出口参数
         POPF                ;恢复现场
         POP DX
         POP CX
@@ -465,7 +463,7 @@ CHECK_AGAIN:
         MOV DX, 0293H
         MOV AL, 05H
         OUT DX, AL          ;E置1
-        CALL DELAY_SHORT
+        ;CALL DELAY_SHORT
         MOV DX, 0290H
         IN  AL, DX          ;读A口忙碌状态
         PUSH AX
@@ -511,7 +509,7 @@ D2:
     DELAY_SHORT PROC NEAR
         PUSH CX
         PUSHF
-        MOV CX,4000
+        MOV CX,1000
 D3: 
         LOOP D3
         POPF
@@ -554,7 +552,13 @@ D3:
 
 
 
-
+;----------------------------------------------------------------------------
+;子程序ARRAY_DISPLAY：      在16*16区域扫描显示
+;入口参数：                 SWITCH_NUM_HIGH     开关高位
+;                          SWITCH_NUM_LOW      开关低位
+;出口参数：
+;所用寄存器：               AX,BX
+;----------------------------------------------------------------------------
     ARRAY_DISPLAY PROC NEAR
         PUSH AX             ;现场保护
         PUSH BX
@@ -562,10 +566,29 @@ D3:
         PUSH DX
         PUSH SI
         PUSHF
-
-
-
-
+        MOV BX OFFSET LED_TABLE
+        MOV COLUMN_ADDRESS, 02B0H;左部
+        MOV ROW_ADDRESS, 02B3H;上部
+        MOV AL, 0
+        MOV AH, SWITCH_NUM_HIGH;相当于乘16
+        ADD AX, BX
+        MOV ROW_CODE_OFFSET, AX
+        CALL ARRAY_DISPLAY_PART;左上角显示
+        MOV ROW_ADDRESS, 02B2H;下部
+        ADD AX, 8
+        MOV ROW_CODE_OFFSET, AX
+        CALL ARRAY_DISPLAY_PART;左下角显示
+        MOV COLUMN_ADDRESS, 02B1H;右部
+        MOV ROW_ADDRESS, 02B3H;上部
+        MOV AL, 0
+        MOV AH, SWITCH_NUM_LOW
+        ADD AX, BX
+        MOV ROW_CODE_OFFSET, AX
+        CALL ARRAY_DISPLAY_PART;右上角显示
+        MOV ROW_ADDRESS, 02B2H;下部
+        ADD AX, 8
+        MOV ROW_CODE_OFFSET, AX
+        CALL ARRAY_DISPLAY_PART;右下角显示
         POPF                ;恢复现场
         POP SI
         POP DX
@@ -574,5 +597,58 @@ D3:
         POP AX
         RET
     ARRAY_DISPLAY ENDP
+;----------------------------------------------------------------------------
+;子程序ARRAY_DISPLAY_PART： 在8*8的小区域列扫描显示
+;入口参数：                 COLUMN_ADDRESS      列地址
+;                          ROW_ADDRESS         行地址
+;                          ROW_CODE_OFFSET     行编码偏移地址
+;出口参数：
+;所用寄存器：               AL,CL,DX
+;----------------------------------------------------------------------------
+    ARRAY_DISPLAY_PART PROC NEAR
+        PUSH AX             ;现场保护
+        PUSH BX
+        PUSH CX
+        PUSH DX
+        PUSH SI
+        PUSHF
+        CLD                 ;向下串操作
+        MOV CX, 8           ;循环8次
+        MOV SI, WORD PTR ROW_CODE_OFFSET
+        MOV BL, 01H
+NEXT:
+        MOV DX, WORD PTR COLUMN_ADDRESS
+        MOV AL, BL
+        OUT DX, AL
+        SHL BL, 1           ;左移一位
+        MOV DX, WORD PTR ROW_ADDRESS
+        LODSB               ;取字形放入AL
+        OUT DX, AL
+        CALL ARRAY_DELAY
+        LOOP NEXT
+        POPF                ;恢复现场
+        POP SI
+        POP DX
+        POP CX
+        POP BX
+        POP AX
+        RET
+    ARRAY_DISPLAY_PART ENDP
+;----------------------------------------------------------------------------
+;子程序ARRAY_DELAY：        列扫描延时
+;入口参数：
+;出口参数：
+;所用寄存器：               CX
+;----------------------------------------------------------------------------
+    ARRAY_DELAY PROC NEAR
+        PUSH CX
+        PUSHF
+        MOV CX, 800
+D4: 
+        LOOP D4
+        POPF
+        POP CX
+        RET
+    ARRAY_DELAY ENDP
 CODE    ENDS
 END     START 
