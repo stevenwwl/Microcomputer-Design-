@@ -16,3 +16,4 @@
  1）使液晶屏实现秒表功能，显示数字 00.00～10.00，每隔 0.01 秒数字变化一次；   
  2）读入8个开关的状态值，将这两位数字以16进制（范围 00H～FFH）在 16x16LED点阵模块上显示。  
 [ST7920](https://wenku.baidu.com/view/19f93f58be23482fb4da4c21.html)
+![image](https://user-images.githubusercontent.com/48176748/111020583-02666c80-8402-11eb-89a1-58be1fc3e10b.png)
