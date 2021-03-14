@@ -1,5 +1,5 @@
 ;8255:0290H-0293H
-;CLK接非门再接IRQ3，8255A口P7接DATA，B口接数码管断码，C口P0-P3接数码管位码
+;CLK接非门再接IRQ3，8255PA7接DATA，PB接数码管段码，PC0-PC3接数码管位码
 ;数据段定义
 DATA    SEGMENT
     MES1 DB 'PRESS 0-F ON PS2 KEYBOARD',0AH,0DH,'$';DOS输出提示信息
@@ -130,7 +130,7 @@ LOOP0:
         PUSH CX
         PUSH DX
         PUSHF
-        MOV DX, 0290H       ;A口
+        MOV DX, 0290H       ;PA
         IN  AL, DX          ;取本位DATA。为0，AL=7FH；为1，AL=FFH
         MOV AH, INPUT_KEY_PS2;AH装入上次传输的编码
         MOV CL, INPUT_BIT   ;CL装入当前传输的位数
@@ -182,10 +182,11 @@ FINISH:
         CMP AL, 0F0H
         JZ  PRESS_OFF       ;若为断码则跳转
         MOV BX, OFFSET PS2  ;循环
-        MOV SI, 0FFFFH
-AGAIN:  INC SI
+        MOV SI, 0000H
+AGAIN:  
         MOV AH, BX[SI]
         CMP AH, AL
+        INC SI
         JNZ AGAIN
         MOV AX, SI
         MOV INPUT_KEY, AL   ;INPUT_KEY放入转换后0-F
@@ -231,7 +232,7 @@ FINISH1:
 ;子程序LED_DISPLAY：    数码管显示
 ;入口参数：             DISPLAY_NUM         要显示的数字
 ;                       TAB                 数码管段码
-;                       C_CONTROL           C口控制字
+;                       C_CONTROL           PC控制字
 ;出口参数：
 ;所用寄存器：           AL,BX,DX
 ;----------------------------------------------------------------------------
@@ -244,7 +245,7 @@ FINISH1:
         MOV BX, OFFSET TAB  ;换码数据地址
         MOV AL, DISPLAY_NUM
         XLAT                ;(BX:AL) to AL，AL放入数码管字形
-        MOV DX, 0291H       ;B口
+        MOV DX, 0291H       ;PB
         OUT DX, AL          ;写入字形
         MOV DX, 0293H       ;控制字
         MOV AL, C_CONTROL

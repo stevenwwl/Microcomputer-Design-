@@ -1,5 +1,5 @@
 ;8253:0280H-0283H  8255:0290H-0293H
-;16*16点阵外挂在JX1扩展接口，列高8位-02B1H，列低8位-02B0H，行高8位02B3H，行低8位02B2H
+;16*16点阵外挂在JX1扩展接口，列高8位-02B1H，列低8位-02B0H，行高8位-02B3H，行低8位-02B2H
 ;LCD12864:RS-PC0  RW-PC1  E-PC2
 ;数据段定义
 DATA    SEGMENT
@@ -58,11 +58,11 @@ START:
     MOV AH, 09H
     INT 21H
 ;初始化8253
-    ;CLK0设置，OUT0为100Hz方波
+    ;CNT0设置，OUT0为100Hz方波
     MOV DX, 0283H           ;控制端
-    MOV AL, 36H             ;CLK0-高低字节-方式3-二进制 00110110
+    MOV AL, 36H             ;CNT0-高低字节-方式3-二进制 00110110
     OUT DX, AL
-    MOV DX, 0280H           ;CLK0
+    MOV DX, 0280H           ;CNT0
     MOV AX, 2710H           ;10000=2710H, 1MHz to 100Hz
     OUT DX, AL
     MOV AL, AH
@@ -156,9 +156,9 @@ LOOP0:
         JZ STOP_TIMING      ;IS_TIMING为1跳转到暂停计时        
 START_TIMING:
         MOV DX, 0283H       ;控制端
-        MOV AL, 70H         ;CLK1-高低字节-方式0-二进制 01110000
+        MOV AL, 70H         ;CNT1-高低字节-方式0-二进制 01110000
         OUT DX, AL
-        MOV DX, 0281H       ;CLK1
+        MOV DX, 0281H       ;CNT1
         MOV AX, WORD PTR TIME_TO_LOAD;写入初值
         OUT DX, AL
         MOV AL, AH
@@ -167,8 +167,8 @@ START_TIMING:
         JMP FINISH
 STOP_TIMING:
         MOV DX, 0283H       ;控制端
-        MOV AL, 40H         ;CLK1锁存
-        MOV DX, 0281H       ;CLK1
+        MOV AL, 40H         ;CNT1锁存
+        MOV DX, 0281H       ;CNT1
         IN  AL, DX
         MOV BL, AL          ;低8位
         IN  AL, DX
@@ -235,8 +235,8 @@ NOT_READ:
         JMP FINISH2
 READ:
         MOV DX, 0283H       ;控制端
-        MOV AL, 40H         ;CLK1锁存
-        MOV DX, 0281H       ;CLK1
+        MOV AL, 40H         ;CNT1锁存
+        MOV DX, 0281H       ;CNT1
         IN  AL, DX
         MOV BL, AL          ;低8位
         IN  AL, DX
@@ -357,7 +357,7 @@ AGAIN:
         MOV AL, 02H
         OUT DX, AL          ;RW置0
         CALL DELAY_SHORT
-        MOV DX, 0290H       ;A口
+        MOV DX, 0290H       ;PA
         MOV AL, LCD_CMD
         OUT DX, AL          ;输出指令
         MOV DX, 0293H
@@ -465,7 +465,7 @@ CHECK_AGAIN:
         OUT DX, AL          ;E置1
         ;CALL DELAY_SHORT
         MOV DX, 0290H
-        IN  AL, DX          ;读A口忙碌状态
+        IN  AL, DX          ;读PA忙碌状态
         PUSH AX
         MOV DX, 0293H
         MOV AL, 04H
@@ -533,7 +533,7 @@ D3:
         MOV AL, 92H
         OUT DX, AL          ;A入B入C出
         MOV DX, 0291H
-        IN  AL, DX          ;读B口
+        IN  AL, DX          ;读PB
         PUSH AX
         AND AL, 0FH
         MOV SWITCH_NUM_LOW, AL;保存低位
