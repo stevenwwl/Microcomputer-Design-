@@ -1,4 +1,6 @@
 {
     "masmtasm.ASM.emulator": "dosbox",
-    "masmtasm.ASM.MASMorTASM": "TASM"
+    "masmtasm.ASM.MASMorTASM": "TASM",
+    "python.pythonPath": "C:\\Anaconda3\\python.exe",
+    "jupyter.jupyterServerType": "local"
 }
