@@ -11,6 +11,9 @@
 2）用实验台上的数码管（3、4）显示输入的次数，计数范围 0～99。  
 [参考](https://blog.csdn.net/xqhrs232/article/details/78350203?utm_medium=distribute.pc_relevant.none-task-blog-baidujs_baidulandingword-8&spm=1001.2101.3001.4242)
 
+![image](https://user-images.githubusercontent.com/48176748/111062491-16829a80-84e4-11eb-93eb-5cc2c45dd2eb.png)
+
+a为键盘到主机串行通信
 ## extend_program_4.asm
 利用 8253、8255 和中断系统实现以下功能：  
  1）使液晶屏实现秒表功能，显示数字 00.00～10.00，每隔 0.01 秒数字变化一次；   
