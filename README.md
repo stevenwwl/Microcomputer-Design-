@@ -16,7 +16,7 @@
 
 ### 流程图
 
-<div align=center> <img src="flow%20chart/basic_program.png" width = 65%/> </div>
+<div align=center> <img src="/flow%20chart/basic_program.svg" width = 65%/> </div>
 
 ## extend_program_1.asm
 
@@ -40,7 +40,7 @@
 <center>a为键盘到主机串行通信</center>
 
 ### 流程图
-<div align=center> <img src="/flow%20chart/extend_program_1.png" width = 100%/> </div>
+<div align=center> <img src="/flow%20chart/extend_program_1.svg" width = 100%/> </div>
 
 ## extend_program_4.asm
 ### 题目描述
@@ -72,7 +72,7 @@
 
 ### 流程图
 
-<div align=center> <img src="/flow%20chart/extend_program_4.png" width = 100%/> </div>
+<div align=center> <img src="/flow%20chart/extend_program_4.svg" width = 100%/> </div>
 
 ## 参考资料
 [PS2](https://blog.csdn.net/xqhrs232/article/details/78350203?utm_medium=distribute.pc_relevant.none-task-blog-baidujs_baidulandingword-8&spm=1001.2101.3001.4242)
