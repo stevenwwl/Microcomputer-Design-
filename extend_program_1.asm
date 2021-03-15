@@ -156,6 +156,8 @@ IGNORE:
 FINISH:
         MOV INPUT_KEY_PS2, AH
         MOV INPUT_BIT, CL
+        MOV AL, 20H         ;发结束中断命令
+        OUT 20H, AL
         POPF                ;恢复现场
         POP DX
         POP CX

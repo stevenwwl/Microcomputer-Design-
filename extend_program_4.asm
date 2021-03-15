@@ -176,6 +176,8 @@ STOP_TIMING:
         MOV TIME_TO_LOAD, BX;保存暂停时的计数器值，下次开始时再装入
         MOV IS_TIMING, 00H  ;IS_TIMING置0，下次开始计时
 FINISH:
+        MOV AL, 20H         ;发结束中断命令
+        OUT 20H, AL
         POPF                ;恢复现场
         POP DX
         POP CX
@@ -202,6 +204,8 @@ FINISH:
         JZ FINISH1
         MOV TIME_TO_LOAD, 0FFFFH;重置初值
 FINISH1:
+        MOV AL, 20H         ;发结束中断命令
+        OUT 20H, AL
         POPF                ;恢复现场
         POP DX
         POP CX

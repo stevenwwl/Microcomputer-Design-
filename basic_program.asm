@@ -126,6 +126,8 @@ OUTPUT:
         MOV AH, 03H         ;重新开始一轮
 FINISH:
         MOV LOOP_NUM, AH
+        MOV AL, 20H         ;发结束中断命令
+        OUT 20H, AL
         POPF                ;恢复现场
         POP DX
         POP CX
